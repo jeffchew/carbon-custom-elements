@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - fix/changelog-fix
 
 jobs:
   publish:
@@ -23,17 +24,19 @@ jobs:
         uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
+          dry-run: true
       - name: Create CHANGELOG
         if: steps.publish.outputs.version != steps.publish.outputs['old-version']
-        uses: heinrichreimer/github-changelog-generator-action@v2.2
+        uses: scottbrenner/generate-changelog-action@master
+        id: Changelog
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          sinceTag: v${{ steps.publish.outputs['old-version'] }}
+          from-tag: v${{ steps.publish.outputs['old-version'] }}
       - name: Create Github Release
         if: steps.publish.outputs.version != steps.publish.outputs['old-version']
         uses: ncipollo/release-action@v1
         with:
-          bodyFile: "CHANGELOG.md"
+          body: |
+            ${{ steps.Changelog.outputs.changelog }}
           tag: v${{ steps.publish.outputs.version }}
-          commit: master
+          commit: fix/changelog-fix
           token: ${{ secrets.GITHUB_TOKEN }}

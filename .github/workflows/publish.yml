@@ -25,18 +25,18 @@ jobs:
         with:
           token: ${{ secrets.NPM_TOKEN }}
           dry-run: true
-      - name: Create CHANGELOG
-        if: steps.publish.outputs.version != steps.publish.outputs['old-version']
-        uses: scottbrenner/generate-changelog-action@master
-        id: Changelog
+      - name: Conventional Changelog Action
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v3
         with:
-          from-tag: v${{ steps.publish.outputs['old-version'] }}
+          github-token: ${{ secrets.github_token }}
+          release-count: 1
+          output-file: "false"
       - name: Create Github Release
         if: steps.publish.outputs.version != steps.publish.outputs['old-version']
         uses: ncipollo/release-action@v1
         with:
-          body: |
-            ${{ steps.Changelog.outputs.changelog }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
           tag: v${{ steps.publish.outputs.version }}
           commit: fix/changelog-fix
           token: ${{ secrets.GITHUB_TOKEN }}
